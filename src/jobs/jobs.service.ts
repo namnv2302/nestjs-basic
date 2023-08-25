@@ -16,8 +16,31 @@ export class JobsService {
   ) {}
 
   async create(createJobDto: CreateJobDto, user: IUser) {
+    const {
+      name,
+      skills,
+      company,
+      salary,
+      quantity,
+      level,
+      description,
+      location,
+      startDate,
+      endDate,
+      isActive,
+    } = createJobDto;
     const job = await this.jobModel.create({
-      ...createJobDto,
+      name,
+      skills,
+      company,
+      salary,
+      quantity,
+      level,
+      description,
+      location,
+      startDate,
+      endDate,
+      isActive,
       createdBy: { _id: user._id, email: user.email },
     });
     return { _id: job._id };
@@ -56,7 +79,10 @@ export class JobsService {
     if (mongoose.Types.ObjectId.isValid(id)) {
       return this.jobModel.findOne({ _id: id });
     }
-    throw new HttpException('Get a job failure', HttpStatus.NOT_FOUND);
+    throw new HttpException(
+      'Get a job failure',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 
   async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
@@ -70,7 +96,10 @@ export class JobsService {
         },
       );
     }
-    throw new HttpException('Update a job failure', HttpStatus.NOT_FOUND);
+    throw new HttpException(
+      'Update a job failure',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 
   async remove(id: string, user: IUser) {
@@ -83,6 +112,9 @@ export class JobsService {
       );
       return await this.jobModel.softDelete({ _id: id });
     }
-    throw new HttpException('Delete a job failure', HttpStatus.NOT_FOUND);
+    throw new HttpException(
+      'Delete a job failure',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 }

@@ -17,6 +17,9 @@ export class Company {
 
   @IsNotEmpty()
   name: string;
+
+  @IsNotEmpty()
+  logo: string;
 }
 
 export class CreateJobDto {
@@ -45,6 +48,9 @@ export class CreateJobDto {
   level: string;
 
   description: string;
+
+  @IsNotEmpty()
+  location: string;
 
   @IsNotEmpty()
   @IsDate()

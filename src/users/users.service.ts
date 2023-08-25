@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
@@ -96,7 +101,10 @@ export class UsersService {
 
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return 'Not found';
+      throw new HttpException(
+        'Get a user failure',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
     const user = this.userModel
       .findOne({
@@ -133,7 +141,10 @@ export class UsersService {
 
   async remove(id: string, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return 'Not found';
+      throw new HttpException(
+        'Delete a user failure',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
     await this.userModel.updateOne({ _id: id }, { deletedBy: user._id });
     return this.userModel.softDelete({

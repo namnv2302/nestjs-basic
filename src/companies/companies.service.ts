@@ -21,13 +21,14 @@ export class CompaniesService {
   ) {}
 
   async create(createCompanyDto: CreateCompanyDto, user: IUser) {
-    const { name, address, description } = createCompanyDto;
+    const { name, logo, address, description } = createCompanyDto;
     const isExist = await this.companyModel.findOne({ name });
     if (isExist) {
       throw new BadRequestException('Company exist! Again');
     }
     const company = await this.companyModel.create({
       name,
+      logo,
       address,
       description,
       createdBy: { _id: user._id, email: user.email },
@@ -68,7 +69,10 @@ export class CompaniesService {
     if (mongoose.Types.ObjectId.isValid(id)) {
       return this.companyModel.findOne({ _id: id });
     }
-    throw new HttpException('Get a company failure', HttpStatus.NOT_FOUND);
+    throw new HttpException(
+      'Get a company failure',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 
   async update(id: string, updateCompanyDto: UpdateCompanyDto, user: IUser) {
@@ -82,7 +86,10 @@ export class CompaniesService {
         },
       );
     }
-    throw new HttpException('Update a company failure', HttpStatus.NOT_FOUND);
+    throw new HttpException(
+      'Update a company failure',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 
   async remove(id: string, user: IUser) {
@@ -93,6 +100,9 @@ export class CompaniesService {
       );
       return this.companyModel.softDelete({ _id: id });
     }
-    throw new HttpException('Delete a company failure', HttpStatus.NOT_FOUND);
+    throw new HttpException(
+      'Delete a company failure',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 }

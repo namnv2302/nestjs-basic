@@ -129,6 +129,12 @@ export class ResumesService {
   }
 
   getResumesByUser(user: IUser) {
-    return this.resumeModel.find({ userId: user._id });
+    return this.resumeModel
+      .find({ userId: user._id })
+      .sort('-createdAt')
+      .populate([
+        { path: 'company', select: { name: 1 } },
+        { path: 'job', select: { name: 1 } },
+      ]);
   }
 }

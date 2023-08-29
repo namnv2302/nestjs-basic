@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsEmail,
+  IsMongoId,
   IsNotEmpty,
   IsNotEmptyObject,
   IsObject,
@@ -39,9 +40,10 @@ export class RegisterUserDto {
 
 export class CreateUserDto extends RegisterUserDto {
   @IsNotEmpty()
-  role: string;
+  @IsMongoId()
+  role: mongoose.Schema.Types.ObjectId;
 
-  @IsNotEmptyObject()
+  @IsNotEmpty()
   @IsObject()
   @ValidateNested()
   @Type(() => Company)

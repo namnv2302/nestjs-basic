@@ -7,17 +7,19 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { ConfigService } from '@nestjs/config';
 import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
+import aqp from 'api-query-params';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IUser } from './users.interface';
-import aqp from 'api-query-params';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+    private configService: ConfigService,
   ) {}
 
   getHashPassword(password: string) {
@@ -46,7 +48,7 @@ export class UsersService {
       gender,
       role,
       company,
-      createdBy: user._id,
+      createdBy: { _id: user._id, email: user.email },
     });
     return { _id: userCreated._id };
   }
@@ -64,7 +66,7 @@ export class UsersService {
       age,
       address,
       gender,
-      role: 'USER',
+      role: this.configService.get<string>('USER_ROLE_ID'),
     });
     return user;
   }
@@ -110,14 +112,17 @@ export class UsersService {
       .findOne({
         _id: id,
       })
-      .select('-password');
+      .select(['-password', '-refreshToken'])
+      .populate({ path: 'role', select: { name: 1 } });
     return user;
   }
 
   findOneByUsername(username: string) {
-    const user = this.userModel.findOne({
-      email: username,
-    });
+    const user = this.userModel
+      .findOne({
+        email: username,
+      })
+      .populate({ path: 'role', select: { name: 1, permissions: 1 } });
     return user;
   }
 
@@ -145,6 +150,13 @@ export class UsersService {
         'Delete a user failure',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+    const foundUser = await this.userModel.findById(id);
+    if (
+      foundUser &&
+      foundUser.email === this.configService.get<string>('ADMIN_EMAIL')
+    ) {
+      throw new BadRequestException("Don't allow delete this account");
     }
     await this.userModel.updateOne({ _id: id }, { deletedBy: user._id });
     return this.userModel.softDelete({
